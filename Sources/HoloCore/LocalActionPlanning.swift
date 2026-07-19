@@ -80,17 +80,21 @@ public extension ZoneActionKind {
     /// actions demand a clearer decision than the base accept, so a borderline
     /// tap cannot fire something with real side effects.
     var minimumAutomaticConfidence: Double {
+        // Expressed as a margin over the base accept threshold so the gate stays
+        // achievable on marginal desks (where correct taps land only modestly
+        // above base) while still demanding a clearer decision for higher impact.
+        let base = ClassifierDefaults.minimumConfidence
         switch self {
         case .none, .sound, .copyText, .speakText:
             // Benign: reversible or purely local. The base accept is enough.
-            return ClassifierDefaults.minimumConfidence
+            return base
         case .openURL, .runShortcut, .openApplication, .openItem,
              .screenshotClipboard, .screenshotSelection:
             // Consequential: launches something or captures the screen.
-            return 0.50
+            return base + 0.08
         case .runShellCommand:
-            // Highest impact: runs arbitrary code. Require the strongest signal.
-            return 0.62
+            // Highest impact: runs arbitrary code. Require the strongest margin.
+            return base + 0.16
         }
     }
 }
