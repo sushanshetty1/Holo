@@ -12,117 +12,173 @@ struct DiagnosticsView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            VStack(alignment: .leading, spacing: 5) {
-                Text("Diagnostics")
-                    .font(.title.weight(.semibold))
-                Text("Inspect the microphone path, capture labeled examples, and compare sensing approaches on this desk.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
-
-            Form {
-                Section("Microphone") {
-                    if let route = model.audio.diagnostics.audioRoute {
-                        LabeledContent("Input", value: endpointDescription(route.input))
-                        LabeledContent("Output", value: endpointDescription(route.output))
-                        if let issue = AudioHardwarePolicy.issue(for: route, strategy: model.targetStrategy) {
-                            Label(hardwareIssueDescription(issue), systemImage: "exclamationmark.triangle")
-                                .foregroundStyle(.orange)
-                        }
-                    } else {
-                        LabeledContent("Input", value: model.audio.diagnostics.deviceName)
-                    }
-                    LabeledContent("Available channels", value: "\(model.audio.diagnostics.channelCount)")
-                    LabeledContent("Channel names", value: model.audio.diagnostics.channelNames.joined(separator: ", "))
-                    LabeledContent("Sample rate", value: String(format: "%.0f Hz", model.audio.diagnostics.sampleRate))
-                    LabeledContent("Analysis buffer", value: "\(model.audio.diagnostics.bufferFrameCount) frames")
-                    LabeledContent("Reported input latency", value: String(format: "%.1f ms", model.audio.diagnostics.timing.estimatedInputLatencyMilliseconds))
-                    LabeledContent("Callback jitter", value: String(format: "%.2f ms", model.audio.diagnostics.timing.callbackJitterMilliseconds))
-                    Label(
-                        "Holo uses only the channels exposed by AVAudioEngine; physical microphone-array access is not assumed.",
-                        systemImage: "info.circle"
-                    )
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                }
-
-                Section("Latest detected tap") {
-                    if model.audio.diagnostics.latestFrequencyResponse.isEmpty {
-                        Text("Tap the desk to inspect its response.")
-                            .foregroundStyle(.secondary)
-                    } else {
-                        spectrumChart(model.audio.diagnostics.latestFrequencyResponse)
-                            .frame(height: 150)
-                            .padding(.vertical, 6)
-                    }
-
-                    if let quality = model.audio.diagnostics.latestSignalQuality {
-                        LabeledContent("Quality", value: quality.summary)
-                        LabeledContent("Signal-to-noise", value: String(format: "%.1f dB", quality.signalToNoiseDB))
-                        LabeledContent("Peak amplitude", value: String(format: "%.3f", quality.peakAmplitude))
-                        LabeledContent("Clipping", value: String(format: "%.1f%%", quality.clippingFraction * 100))
-                    }
-                }
-
-                Section("Labeled capture") {
-                    Picker("Label", selection: $model.diagnosticLabel) {
-                        ForEach(diagnosticLabels) { label in
-                            Text(label.displayName).tag(label)
-                        }
-                    }
-
-                    HStack {
-                        Button(model.diagnosticCaptureArmed ? "Waiting for Signal…" : "Capture Next Tap") {
-                            model.armDiagnosticCapture()
-                        }
-                        .holoPrimaryButton()
-                        .disabled(model.diagnosticCaptureArmed || !model.audio.isListening)
-
-                        Text("\(model.diagnosticCaptures.count) feature samples")
-                            .font(.caption.monospacedDigit())
-                            .foregroundStyle(.secondary)
-
-                        Spacer()
-
-                        Button("Export JSON") { model.exportDiagnosticReport() }
-                    }
-                }
-
-                Section("Privacy and debug audio") {
-                    Toggle("Retain 90 ms debug recordings", isOn: Binding(
-                        get: { model.debugRecordingEnabled },
-                        set: model.setDebugRecordingEnabled
-                    ))
-                    Text(model.debugRecordingEnabled
-                         ? "Raw WAV windows are being saved locally until you delete them."
-                         : "Audio is discarded after feature extraction. Profiles contain features, not recordings.")
-                        .font(.caption)
-                        .foregroundStyle(model.debugRecordingEnabled ? Color.red : Color.secondary)
-                    if model.hasDebugRecordings {
-                        Button("Delete All Debug Recordings", role: .destructive) {
-                            model.clearDebugRecordings()
-                        }
-                    }
-                }
-
-                Section("Sensing approach") {
-                    DisclosureGroup("Compare passive, active, and hybrid sensing", isExpanded: $showApproachLab) {
-                        approachLab
-                            .padding(.top, 10)
-                    }
-                }
-            }
-            .formStyle(.grouped)
+        HoloScreen(
+            title: "Diagnostics",
+            subtitle: "Inspect the microphone path, capture labeled examples, and compare sensing approaches on this desk."
+        ) {
+            microphoneSection
+            latestTapSection
+            labeledCaptureSection
+            privacySection
+            sensingSection
         }
-        .frame(maxWidth: 760)
-        .padding(36)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(HoloTheme.background)
         .onChange(of: model.benchmarkSession != nil) { _, running in
             if running { showApproachLab = true }
         }
     }
+
+    // MARK: Microphone
+
+    private var microphoneRows: [HoloInfoRow] {
+        let d = model.audio.diagnostics
+        var rows: [HoloInfoRow] = []
+        if let route = d.audioRoute {
+            rows.append(HoloInfoRow(label: "Input", value: endpointDescription(route.input)))
+            rows.append(HoloInfoRow(label: "Output", value: endpointDescription(route.output)))
+        } else {
+            rows.append(HoloInfoRow(label: "Input", value: d.deviceName))
+        }
+        rows.append(HoloInfoRow(label: "Available channels", value: "\(d.channelCount)", mono: true))
+        rows.append(HoloInfoRow(label: "Channel names", value: d.channelNames.joined(separator: ", ")))
+        rows.append(HoloInfoRow(label: "Sample rate", value: String(format: "%.0f Hz", d.sampleRate), mono: true))
+        rows.append(HoloInfoRow(label: "Analysis buffer", value: "\(d.bufferFrameCount) frames", mono: true))
+        rows.append(HoloInfoRow(label: "Reported input latency", value: String(format: "%.1f ms", d.timing.estimatedInputLatencyMilliseconds), mono: true))
+        rows.append(HoloInfoRow(label: "Callback jitter", value: String(format: "%.2f ms", d.timing.callbackJitterMilliseconds), mono: true))
+        return rows
+    }
+
+    private var microphoneSection: some View {
+        HoloGroup("Microphone", footnote: "Holo uses only the channels exposed by AVAudioEngine; physical microphone-array access is not assumed.") {
+            VStack(alignment: .leading, spacing: 10) {
+                HoloInfoCard(rows: microphoneRows)
+                if let route = model.audio.diagnostics.audioRoute,
+                   let issue = AudioHardwarePolicy.issue(for: route, strategy: model.targetStrategy) {
+                    Label(hardwareIssueDescription(issue), systemImage: "exclamationmark.triangle")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.orange)
+                }
+            }
+        }
+    }
+
+    // MARK: Latest detected tap
+
+    private var latestTapSection: some View {
+        HoloGroup("Latest detected tap") {
+            VStack(alignment: .leading, spacing: 12) {
+                if model.audio.diagnostics.latestFrequencyResponse.isEmpty {
+                    HStack(spacing: 12) {
+                        HoloLogoView(tint: .secondary, listening: false)
+                            .frame(width: 26, height: 26)
+                        Text("Tap the desk to inspect its response.")
+                            .font(.system(size: 13))
+                            .foregroundStyle(.secondary)
+                        Spacer(minLength: 0)
+                    }
+                    .padding(16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .holoCard()
+                } else {
+                    spectrumChart(model.audio.diagnostics.latestFrequencyResponse)
+                        .frame(height: 150)
+                        .padding(16)
+                        .holoCard()
+                    if let quality = model.audio.diagnostics.latestSignalQuality {
+                        HoloInfoCard(rows: [
+                            HoloInfoRow(label: "Quality", value: quality.summary),
+                            HoloInfoRow(label: "Signal-to-noise", value: String(format: "%.1f dB", quality.signalToNoiseDB), mono: true),
+                            HoloInfoRow(label: "Peak amplitude", value: String(format: "%.3f", quality.peakAmplitude), mono: true),
+                            HoloInfoRow(label: "Clipping", value: String(format: "%.1f%%", quality.clippingFraction * 100), mono: true)
+                        ])
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: Labeled capture
+
+    private var labeledCaptureSection: some View {
+        HoloGroup("Labeled capture") {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Text("Capture label")
+                        .font(.system(size: 13))
+                    Spacer()
+                    Picker("", selection: $model.diagnosticLabel) {
+                        ForEach(diagnosticLabels) { label in
+                            Text(label.displayName).tag(label)
+                        }
+                    }
+                    .labelsHidden()
+                    .frame(width: 190)
+                }
+                HStack(spacing: 12) {
+                    Button(model.diagnosticCaptureArmed ? "Waiting for Signal…" : "Capture Next Tap") {
+                        model.armDiagnosticCapture()
+                    }
+                    .holoPrimaryButton()
+                    .disabled(model.diagnosticCaptureArmed || !model.audio.isListening)
+
+                    Text("\(model.diagnosticCaptures.count) feature samples")
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundStyle(.secondary)
+
+                    Spacer()
+
+                    Button("Export JSON") { model.exportDiagnosticReport() }
+                        .holoSecondaryButton()
+                }
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .holoCard()
+        }
+    }
+
+    // MARK: Privacy & debug audio
+
+    private var privacySection: some View {
+        HoloGroup("Privacy & debug audio") {
+            VStack(alignment: .leading, spacing: 10) {
+                Toggle("Retain 90 ms debug recordings", isOn: Binding(
+                    get: { model.debugRecordingEnabled },
+                    set: model.setDebugRecordingEnabled
+                ))
+                Text(model.debugRecordingEnabled
+                     ? "Raw WAV windows are being saved locally until you delete them."
+                     : "Audio is discarded after feature extraction. Profiles contain features, not recordings.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(model.debugRecordingEnabled ? Color.red : Color.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if model.hasDebugRecordings {
+                    Button("Delete All Debug Recordings", role: .destructive) {
+                        model.clearDebugRecordings()
+                    }
+                    .holoSecondaryButton()
+                }
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .holoCard()
+        }
+    }
+
+    // MARK: Sensing approach
+
+    private var sensingSection: some View {
+        HoloGroup("Sensing approach") {
+            DisclosureGroup("Compare passive, active, and hybrid sensing", isExpanded: $showApproachLab) {
+                approachLab
+                    .padding(.top, 12)
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .holoCard()
+        }
+    }
+
+    // MARK: Helpers
 
     private func endpointDescription(_ endpoint: AudioEndpointInfo?) -> String {
         guard let endpoint else { return "Unavailable" }
@@ -145,7 +201,7 @@ struct DiagnosticsView: View {
     private var approachLab: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("This comparison collects three taps per zone for each approach, then compares cross-validation accuracy and processing latency. Active and hybrid modes emit a quiet chirp.")
-                .font(.caption)
+                .font(.system(size: 12))
                 .foregroundStyle(.secondary)
 
             if let session = model.benchmarkSession {

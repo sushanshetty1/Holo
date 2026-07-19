@@ -10,17 +10,12 @@ struct ZoneActionsView: View {
     var body: some View {
         Group {
             if let profile = model.selectedProfile {
-                VStack(alignment: .leading, spacing: 18) {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("Assign actions")
-                            .font(.title.weight(.semibold))
-                        Text("Each accepted tap runs its assigned action. Changes save automatically.")
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Form {
-                        Section("Left of MacBook") {
+                HoloScreen(
+                    title: "Assign actions",
+                    subtitle: "Each accepted tap runs its assigned action. Changes save automatically."
+                ) {
+                    HoloGroup("Left of the MacBook") {
+                        VStack(spacing: 12) {
                             ForEach(sortedConfigurations(profile, isLeft: true)) { configuration in
                                 ZoneActionRow(
                                     configuration: configuration,
@@ -35,8 +30,10 @@ struct ZoneActionsView: View {
                                 .id("\(profile.id)-\(configuration.zone.rawValue)")
                             }
                         }
+                    }
 
-                        Section("Right of MacBook") {
+                    HoloGroup("Right of the MacBook") {
+                        VStack(spacing: 12) {
                             ForEach(sortedConfigurations(profile, isLeft: false)) { configuration in
                                 ZoneActionRow(
                                     configuration: configuration,
@@ -51,42 +48,14 @@ struct ZoneActionsView: View {
                                 .id("\(profile.id)-\(configuration.zone.rawValue)")
                             }
                         }
-
-                        Section("Automation") {
-                            Label("Use Run Shortcut for multi-step workflows such as opening Claude and starting a voice workflow.", systemImage: "command")
-                            Label("Shell commands run through /bin/zsh with Holo's current macOS permissions.", systemImage: "terminal")
-                            Label("Screenshot actions copy the result and may request Screen Recording access.", systemImage: "camera.viewfinder")
-                        }
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                        Section {
-                            HStack {
-                                Text("Profile: \(profile.name)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                                Button("Delete Profile", role: .destructive) {
-                                    confirmDelete = true
-                                }
-                            }
-                        }
                     }
 
-                    .formStyle(.grouped)
+                    automationSection
+
+                    profileSection(profile)
                 }
-                .frame(maxWidth: 780, alignment: .leading)
-                .padding(36)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ContentUnavailableView {
-                    Label("No Desk Profile", systemImage: "macbook")
-                } description: {
-                    Text("Calibrate the four zones before assigning actions.")
-                } actions: {
-                    Button("Open Calibration") { model.section = .calibrate }
-                        .holoPrimaryButton()
-                }
+                emptyState
             }
         }
         .background(HoloTheme.background)
@@ -96,6 +65,82 @@ struct ZoneActionsView: View {
         } message: {
             Text("The saved calibration and its four actions will be removed.")
         }
+    }
+
+    // MARK: Automation guidance
+
+    private var automationSection: some View {
+        HoloGroup("Automation") {
+            VStack(alignment: .leading, spacing: 12) {
+                automationNote(
+                    "Use Run Shortcut for multi-step workflows such as opening Claude and starting a voice workflow.",
+                    systemImage: "command"
+                )
+                automationNote(
+                    "Shell commands run through /bin/zsh with Holo's current macOS permissions.",
+                    systemImage: "terminal"
+                )
+                automationNote(
+                    "Screenshot actions copy the result and may request Screen Recording access.",
+                    systemImage: "camera.viewfinder"
+                )
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .holoCard()
+        }
+    }
+
+    private func automationNote(_ text: String, systemImage: String) -> some View {
+        Label(text, systemImage: systemImage)
+            .font(.system(size: 12))
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    // MARK: Profile
+
+    private func profileSection(_ profile: HoloProfile) -> some View {
+        HoloGroup("Profile") {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Text("Active profile")
+                        .font(.system(size: 13))
+                    Spacer(minLength: 16)
+                    Text(profile.name)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                }
+                Button("Delete Profile", role: .destructive) {
+                    confirmDelete = true
+                }
+                .holoSecondaryButton()
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .holoCard()
+        }
+    }
+
+    // MARK: Empty state
+
+    private var emptyState: some View {
+        VStack(spacing: 18) {
+            HoloLogoView(tint: .secondary, listening: false)
+                .frame(width: 64, height: 64)
+            VStack(spacing: 6) {
+                Text("No desk profile yet")
+                    .font(.system(size: 17, weight: .semibold))
+                Text("Calibrate the four zones before assigning actions.")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            Button("Open Calibration") { model.section = .calibrate }
+                .holoPrimaryButton()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(40)
     }
 
     private func sortedConfigurations(_ profile: HoloProfile, isLeft: Bool) -> [ZoneConfiguration] {
@@ -129,19 +174,14 @@ private struct ZoneActionRow: View {
     }
 
     var body: some View {
-        LabeledContent {
-            HStack(spacing: 12) {
-                Picker("Action", selection: $action.kind) {
-                    ForEach(ZoneActionKind.allCases) { kind in
-                        Text(kind.displayName).tag(kind)
-                    }
-                }
-                .labelsHidden()
-                .frame(width: 190)
-
-                detailControl
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Text(configuration.zone.positionName)
+                    .font(.system(size: 15, weight: .semibold))
+                Text(configuration.zone.isLeft ? "Left side" : "Right side")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                Spacer(minLength: 12)
                 Button("Test", systemImage: "play.fill") {
                     onTest(action)
                 }
@@ -150,17 +190,26 @@ private struct ZoneActionRow: View {
                 .disabled(!canTest)
                 .help(canTest ? "Test this action" : "Finish configuring this action before testing")
             }
-        } label: {
-            VStack(alignment: .leading, spacing: 1) {
-                Text(configuration.zone.positionName)
-                    .font(.body.weight(.medium))
-                Text(configuration.zone.isLeft ? "Left side" : "Right side")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+
+            HStack(spacing: 12) {
+                Text("Action")
+                    .font(.system(size: 13))
+                Spacer(minLength: 16)
+                Picker("Action", selection: $action.kind) {
+                    ForEach(ZoneActionKind.allCases) { kind in
+                        Text(kind.displayName).tag(kind)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: 200)
             }
-            .frame(width: 86, alignment: .leading)
+
+            detailControl
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.vertical, 4)
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .holoCard()
         .onChange(of: action) { oldValue, newValue in
             if isRevertingFailedSave {
                 isRevertingFailedSave = false
@@ -182,6 +231,7 @@ private struct ZoneActionRow: View {
         switch action.kind {
         case .none:
             Text("Highlight only")
+                .font(.system(size: 13))
                 .foregroundStyle(.secondary)
         case .sound:
             Picker("Sound", selection: $action.soundName) {
@@ -218,14 +268,16 @@ private struct ZoneActionRow: View {
                 TextField("Shell command", text: $action.text, prompt: Text("open -a Claude"))
                     .font(.system(.body, design: .monospaced))
                 Text("Runs automatically after an accepted tap")
-                    .font(.caption2)
+                    .font(.system(size: 11))
                     .foregroundStyle(.orange)
             }
         case .screenshotClipboard:
             Label("All displays → Clipboard", systemImage: "rectangle.on.rectangle")
+                .font(.system(size: 13))
                 .foregroundStyle(.secondary)
         case .screenshotSelection:
             Label("Choose an area → Clipboard", systemImage: "viewfinder")
+                .font(.system(size: 13))
                 .foregroundStyle(.secondary)
         }
     }

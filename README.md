@@ -258,3 +258,9 @@ For every supported Mac/desk combination:
 5. Run the live app for 30 minutes with representative taps, conversation, typing, laptop touches, and background noise while monitoring crashes, false triggers, and memory.
 
 Until those physical checks are complete, Holo should be described as functional experimental software—not a proven acoustic input device.
+
+## Credits
+
+Holo was originally created by **[JustinGamer191](https://github.com/JustinGamer191)**.
+
+The macOS menu bar item and the full interface redesign (shared visual system, reworked navigation, and light/dark refresh) in this repository are by **[sushanshetty1](https://github.com/sushanshetty1)**.

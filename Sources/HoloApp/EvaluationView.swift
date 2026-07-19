@@ -7,14 +7,7 @@ struct EvaluationView: View {
     var body: some View {
         Group {
             if model.selectedProfile == nil {
-                ContentUnavailableView {
-                    Label("No Desk Profile", systemImage: "checkmark.seal")
-                } description: {
-                    Text("Calibrate the four desk zones before evaluating them.")
-                } actions: {
-                    Button("Open Calibration") { model.section = .calibrate }
-                        .holoPrimaryButton()
-                }
+                noProfile
             } else if let session = model.evaluationSession {
                 activeSession(session)
             } else if let report = model.latestEvaluation {
@@ -27,61 +20,90 @@ struct EvaluationView: View {
         .background(HoloTheme.background)
     }
 
-    private var intro: some View {
-        VStack(spacing: 22) {
+    // MARK: No profile
+
+    private var noProfile: some View {
+        VStack(spacing: 18) {
             Spacer()
-            Image(systemName: "checkmark.seal")
-                .font(.system(size: 44, weight: .light))
-                .foregroundStyle(.secondary)
-            VStack(spacing: 7) {
-                Text("Test your calibration")
-                    .font(.title.weight(.semibold))
-                Text("Use new taps that were not part of calibration. Holo guides \(EvaluationAcceptance.tapsPerZone) taps in each zone and counts rejected taps as incorrect.")
-                    .font(.callout)
+            HoloLogoView(tint: .secondary, listening: false)
+                .frame(width: 64, height: 64)
+            VStack(spacing: 8) {
+                Text("No desk profile")
+                    .font(.system(size: 20, weight: .semibold))
+                Text("Calibrate the four desk zones before evaluating them.")
+                    .font(.system(size: 13))
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
-                    .frame(maxWidth: 520)
+                    .frame(maxWidth: 360)
             }
-
-            Grid(alignment: .leading, horizontalSpacing: 28, verticalSpacing: 10) {
-                acceptanceRow(
-                    "Taps",
-                    "\(DeskZone.allCases.count * EvaluationAcceptance.tapsPerZone) total · \(EvaluationAcceptance.tapsPerZone) per zone"
-                )
-                acceptanceRow(
-                    "Accuracy target",
-                    "\(Int(EvaluationAcceptance.minimumAccuracy * 100))% or better"
-                )
-                acceptanceRow(
-                    "Response target",
-                    "Median under \(Int(EvaluationAcceptance.maximumMedianResponseMilliseconds)) ms"
-                )
-                acceptanceRow("Output", "Per-zone accuracy and confusion matrix")
-            }
-            .font(.callout)
-
-            Button("Start Accuracy Test") { model.beginEvaluation() }
+            Button("Open Calibration") { model.section = .calibrate }
                 .holoPrimaryButton()
-                .controlSize(.large)
             Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(36)
     }
 
+    // MARK: Intro (idle)
+
+    private var acceptanceRows: [HoloInfoRow] {
+        [
+            HoloInfoRow(
+                label: "Taps",
+                value: "\(DeskZone.allCases.count * EvaluationAcceptance.tapsPerZone) total · \(EvaluationAcceptance.tapsPerZone) per zone"
+            ),
+            HoloInfoRow(
+                label: "Accuracy target",
+                value: "\(Int(EvaluationAcceptance.minimumAccuracy * 100))% or better"
+            ),
+            HoloInfoRow(
+                label: "Response target",
+                value: "Median under \(Int(EvaluationAcceptance.maximumMedianResponseMilliseconds)) ms"
+            ),
+            HoloInfoRow(label: "Output", value: "Per-zone accuracy and confusion matrix")
+        ]
+    }
+
+    private var intro: some View {
+        HoloScreen(
+            title: "Accuracy Test",
+            subtitle: "Use new taps that were not part of calibration. Holo guides \(EvaluationAcceptance.tapsPerZone) taps in each zone and counts rejected taps as incorrect."
+        ) {
+            VStack(spacing: 18) {
+                HoloLogoView(tint: .accentColor, listening: true)
+                    .frame(width: 56, height: 56)
+                Text("Test your calibration")
+                    .font(.system(size: 17, weight: .semibold))
+                Button("Start Accuracy Test") { model.beginEvaluation() }
+                    .holoPrimaryButton()
+                    .controlSize(.large)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(28)
+            .holoCard()
+
+            HoloGroup("What to expect") {
+                HoloInfoCard(rows: acceptanceRows)
+            }
+        }
+    }
+
+    // MARK: Active guided run
+
     private func activeSession(_ session: EvaluationSession) -> some View {
         ScrollView {
-            VStack(spacing: 22) {
+            VStack(spacing: 24) {
                 HStack(alignment: .firstTextBaseline) {
-                    VStack(alignment: .leading, spacing: 3) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(session.currentZone?.displayName ?? "Complete")
-                            .font(.title.weight(.semibold))
+                            .font(.system(size: 24, weight: .bold))
                         Text("Tap the highlighted zone naturally.")
-                            .font(.callout)
+                            .font(.system(size: 13))
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
                     Text("\(session.records.count) of \(DeskZone.allCases.count * session.targetPerZone)")
-                        .font(.callout.monospacedDigit())
+                        .font(.system(size: 13).monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
 
@@ -99,13 +121,13 @@ struct EvaluationView: View {
                 )
                 .frame(maxWidth: 760)
 
-                VStack(spacing: 14) {
+                VStack(spacing: 16) {
                     if session.isSettling {
                         HStack(spacing: 9) {
                             ProgressView()
                                 .controlSize(.small)
                             Text("Preparing the microphone…")
-                                .font(.headline)
+                                .font(.system(size: 14, weight: .medium))
                         }
                     } else if session.isArmed {
                         HStack(spacing: 8) {
@@ -113,17 +135,17 @@ struct EvaluationView: View {
                                 .fill(.red)
                                 .frame(width: 7, height: 7)
                             Text("Accuracy test armed")
-                                .font(.headline)
+                                .font(.system(size: 14, weight: .semibold))
                             if let zone = session.currentZone {
                                 let count = session.records.filter { $0.expectedZone == zone }.count
                                 Text("Tap \(count + 1) of \(session.targetPerZone)")
-                                    .font(.callout.monospacedDigit())
+                                    .font(.system(size: 12).monospacedDigit())
                                     .foregroundStyle(.secondary)
                             }
                         }
                     } else if let zone = session.currentZone {
                         Text("Move to \(zone.displayName.lowercased()). Sounds are ignored until you arm this zone.")
-                            .font(.callout)
+                            .font(.system(size: 13))
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
                         Button("Arm \(zone.displayName)") { model.armEvaluationZone() }
@@ -144,10 +166,11 @@ struct EvaluationView: View {
                         Spacer()
                         Button("Cancel", role: .cancel) { model.cancelEvaluation() }
                     }
-                    .font(.callout)
+                    .font(.system(size: 13))
                 }
                 .padding(16)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .frame(maxWidth: .infinity)
+                .holoCard()
             }
             .frame(maxWidth: 820)
             .padding(32)
@@ -155,140 +178,130 @@ struct EvaluationView: View {
         }
     }
 
+    // MARK: Results
+
+    private func summaryRows(_ report: EvaluationReport) -> [HoloInfoRow] {
+        [
+            HoloInfoRow(
+                label: "Overall accuracy",
+                value: "\(Int(report.overallAccuracy * 100))% · \(report.meetsAccuracyTarget ? "Meets 80% target" : "Below 80% target")"
+            ),
+            HoloInfoRow(label: "Median response", value: latencySummary(report)),
+            HoloInfoRow(
+                label: "Balanced session",
+                value: report.isBalancedAcceptanceSession
+                    ? "\(DeskZone.allCases.count) × \(EvaluationAcceptance.tapsPerZone)"
+                    : "No"
+            ),
+            HoloInfoRow(
+                label: "Rejected taps",
+                value: "\(report.records.filter { $0.predictedZone == nil }.count)",
+                mono: true
+            )
+        ]
+    }
+
     private func reportView(_ report: EvaluationReport) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                HStack(alignment: .firstTextBaseline) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(report.meetsAccuracyAndLatencyTargets ? "Accuracy test passed" : "Accuracy test complete")
-                            .font(.title.weight(.semibold))
-                        Text("\(report.profileName) · \(report.strategy.displayName)")
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                        Text(report.completedAt.formatted(date: .abbreviated, time: .shortened))
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                    }
-                    Spacer()
-                    Button("Run Again") { model.beginEvaluation() }
-                        .holoSecondaryButton()
+        HoloScreen(
+            title: "Accuracy Test",
+            subtitle: "\(report.profileName) · \(report.strategy.displayName)"
+        ) {
+            HStack(alignment: .center, spacing: 14) {
+                Image(systemName: report.meetsAccuracyAndLatencyTargets ? "checkmark.seal.fill" : "checkmark.seal")
+                    .font(.system(size: 26))
+                    .foregroundStyle(report.meetsAccuracyAndLatencyTargets ? Color.green : Color.secondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(report.meetsAccuracyAndLatencyTargets ? "Accuracy test passed" : "Accuracy test complete")
+                        .font(.system(size: 17, weight: .semibold))
+                    Text(report.completedAt.formatted(date: .abbreviated, time: .shortened))
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
                 }
+                Spacer()
+                Button("Run Again") { model.beginEvaluation() }
+                    .holoSecondaryButton()
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .holoCard()
 
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Summary")
-                        .font(.headline)
-                    Grid(alignment: .leading, horizontalSpacing: 28, verticalSpacing: 9) {
-                        summaryRow(
-                            "Overall accuracy",
-                            "\(Int(report.overallAccuracy * 100))% · \(report.meetsAccuracyTarget ? "Meets 80% target" : "Below 80% target")"
-                        )
-                        summaryRow(
-                            "Median response",
-                            latencySummary(report)
-                        )
-                        summaryRow(
-                            "Balanced session",
-                            report.isBalancedAcceptanceSession
-                                ? "\(DeskZone.allCases.count) × \(EvaluationAcceptance.tapsPerZone)"
-                                : "No"
-                        )
-                        summaryRow("Rejected taps", "\(report.records.filter { $0.predictedZone == nil }.count)")
+            HoloGroup("Summary") {
+                HoloInfoCard(rows: summaryRows(report))
+            }
+
+            HoloGroup("Per-zone accuracy") {
+                Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 10) {
+                    GridRow {
+                        Text("Zone").font(.system(size: 12)).foregroundStyle(.secondary)
+                        Text("Correct").font(.system(size: 12)).foregroundStyle(.secondary)
+                        Text("Accuracy").font(.system(size: 12)).foregroundStyle(.secondary)
                     }
-                    .font(.callout)
-                }
-
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Per-zone accuracy")
-                        .font(.headline)
-                    Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 9) {
+                    ForEach(report.perZoneAccuracy) { item in
                         GridRow {
-                            Text("Zone").foregroundStyle(.secondary)
-                            Text("Correct").foregroundStyle(.secondary)
-                            Text("Accuracy").foregroundStyle(.secondary)
-                        }
-                        ForEach(report.perZoneAccuracy) { item in
-                            GridRow {
-                                Text(item.zone.displayName)
-                                Text("\(item.correct) / \(item.total)").monospacedDigit()
-                                HStack {
-                                    ProgressView(value: item.accuracy)
-                                        .frame(width: 150)
-                                    Text("\(Int(item.accuracy * 100))%")
-                                        .font(.caption.monospacedDigit())
-                                        .foregroundStyle(.secondary)
-                                }
+                            Text(item.zone.displayName)
+                                .font(.system(size: 13))
+                            Text("\(item.correct) / \(item.total)")
+                                .font(.system(size: 13).monospacedDigit())
+                            HStack(spacing: 10) {
+                                ProgressView(value: item.accuracy)
+                                    .frame(width: 150)
+                                Text("\(Int(item.accuracy * 100))%")
+                                    .font(.system(size: 12).monospacedDigit())
+                                    .foregroundStyle(.secondary)
                             }
                         }
                     }
-                    .font(.callout)
                 }
-
-                confusionMatrix(report)
-
-                if model.latestEvaluationIsPersisted {
-                    Text("JSON and CSV reports are saved locally in Holo's Application Support folder.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else {
-                    Label(
-                        "This result is in memory only because its JSON and CSV files were not saved.",
-                        systemImage: "exclamationmark.triangle"
-                    )
-                    .font(.caption)
-                    .foregroundStyle(.orange)
-                }
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .holoCard()
             }
-            .frame(maxWidth: 760, alignment: .leading)
-            .padding(36)
-            .frame(maxWidth: .infinity)
+
+            HoloGroup("Confusion matrix", footnote: "Rows are expected zones. Columns are predicted zones; R is rejected.") {
+                confusionGrid(report)
+                    .padding(16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .holoCard()
+            }
+
+            if model.latestEvaluationIsPersisted {
+                Text("JSON and CSV reports are saved locally in Holo's Application Support folder.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+            } else {
+                Label(
+                    "This result is in memory only because its JSON and CSV files were not saved.",
+                    systemImage: "exclamationmark.triangle"
+                )
+                .font(.system(size: 12))
+                .foregroundStyle(.orange)
+            }
         }
     }
 
-    private func confusionMatrix(_ report: EvaluationReport) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Confusion matrix")
-                .font(.headline)
-            Text("Rows are expected zones. Columns are predicted zones; R is rejected.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Grid(horizontalSpacing: 5, verticalSpacing: 5) {
+    private func confusionGrid(_ report: EvaluationReport) -> some View {
+        Grid(horizontalSpacing: 5, verticalSpacing: 5) {
+            GridRow {
+                Text("")
+                ForEach(DeskZone.allCases) { zone in matrixLabel(zone.shortName) }
+                matrixLabel("R")
+            }
+            ForEach(DeskZone.allCases) { expected in
                 GridRow {
-                    Text("")
-                    ForEach(DeskZone.allCases) { zone in matrixLabel(zone.shortName) }
-                    matrixLabel("R")
-                }
-                ForEach(DeskZone.allCases) { expected in
-                    GridRow {
-                        matrixLabel(expected.shortName)
-                        ForEach(DeskZone.allCases) { predicted in
-                            matrixCell(
-                                report.confusionMatrix[expected.rawValue][predicted.rawValue],
-                                diagonal: expected == predicted
-                            )
-                        }
-                        matrixCell(report.rejectedPerZone[expected.rawValue], diagonal: false)
+                    matrixLabel(expected.shortName)
+                    ForEach(DeskZone.allCases) { predicted in
+                        matrixCell(
+                            report.confusionMatrix[expected.rawValue][predicted.rawValue],
+                            diagonal: expected == predicted
+                        )
                     }
+                    matrixCell(report.rejectedPerZone[expected.rawValue], diagonal: false)
                 }
             }
         }
     }
 
-    private func acceptanceRow(_ label: String, _ value: String) -> some View {
-        GridRow {
-            Text(label).foregroundStyle(.secondary)
-            Text(value)
-        }
-    }
-
-    private func summaryRow(_ label: String, _ value: String) -> some View {
-        GridRow {
-            Text(label)
-                .foregroundStyle(.secondary)
-            Text(value)
-                .monospacedDigit()
-        }
-    }
+    // MARK: Helpers
 
     private func latencySummary(_ report: EvaluationReport) -> String {
         guard report.hasCompleteResponseLatency else {

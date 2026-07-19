@@ -2,8 +2,20 @@ import AppKit
 import SwiftUI
 
 final class HoloAppDelegate: NSObject, NSApplicationDelegate {
+    // Keep Holo running in the menu bar after the window is closed, so listening
+    // continues and the status item stays available. Quit is explicit (menu
+    // item or ⌘Q).
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        true
+        false
+    }
+}
+
+/// Observes the model so the menu bar glyph reflects listening vs. paused state.
+private struct MenuBarLabel: View {
+    @ObservedObject var model: AppModel
+
+    var body: some View {
+        Image(nsImage: HoloLogo.menuBarImage(listening: model.audio.isListening))
     }
 }
 
@@ -39,5 +51,12 @@ struct HoloApp: App {
                 .disabled(model.selectedProfile == nil || model.guidedSection != nil)
             }
         }
+
+        MenuBarExtra {
+            MenuBarPanel(model: model)
+        } label: {
+            MenuBarLabel(model: model)
+        }
+        .menuBarExtraStyle(.window)
     }
 }

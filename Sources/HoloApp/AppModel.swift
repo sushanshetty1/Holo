@@ -17,17 +17,17 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable {
 
     var title: String {
         switch self {
-        case .live: return "Desk"
-        case .calibrate: return "Calibration"
+        case .live: return "Live"
+        case .calibrate: return "Calibrate"
         case .diagnostics: return "Diagnostics"
-        case .evaluate: return "Accuracy Test"
+        case .evaluate: return "Accuracy"
         case .actions: return "Actions"
         }
     }
 
     var symbol: String {
         switch self {
-        case .live: return "rectangle.split.2x1.fill"
+        case .live: return "dot.radiowaves.left.and.right"
         case .calibrate: return "scope"
         case .diagnostics: return "waveform.path.ecg"
         case .evaluate: return "checkmark.seal"
