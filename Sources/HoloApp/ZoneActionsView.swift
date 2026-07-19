@@ -12,16 +12,15 @@ struct ZoneActionsView: View {
             if let profile = model.selectedProfile {
                 HoloScreen(
                     title: "Assign actions",
-                    subtitle: "Each accepted tap runs its assigned action. Changes save automatically."
+                    subtitle: "Each zone runs its action on a single tap, and an optional second action on a double tap. Changes save automatically."
                 ) {
                     HoloGroup("Left of the MacBook") {
                         VStack(spacing: 12) {
                             ForEach(sortedConfigurations(profile, isLeft: true)) { configuration in
                                 ZoneActionRow(
                                     configuration: configuration,
-                                    onChange: { action in
-                                        model.updateAction(for: configuration.zone, action: action)
-                                    },
+                                    onChangeSingle: { model.updateAction(for: configuration.zone, action: $0) },
+                                    onChangeDouble: { model.updateDoubleTapAction(for: configuration.zone, action: $0) },
                                     onTest: model.testAction,
                                     onError: { error in
                                         model.errorMessage = "The action could not be assigned. \(error.localizedDescription)"
@@ -37,9 +36,8 @@ struct ZoneActionsView: View {
                             ForEach(sortedConfigurations(profile, isLeft: false)) { configuration in
                                 ZoneActionRow(
                                     configuration: configuration,
-                                    onChange: { action in
-                                        model.updateAction(for: configuration.zone, action: action)
-                                    },
+                                    onChangeSingle: { model.updateAction(for: configuration.zone, action: $0) },
+                                    onChangeDouble: { model.updateDoubleTapAction(for: configuration.zone, action: $0) },
                                     onTest: model.testAction,
                                     onError: { error in
                                         model.errorMessage = "The action could not be assigned. \(error.localizedDescription)"
@@ -152,25 +150,32 @@ struct ZoneActionsView: View {
 
 private struct ZoneActionRow: View {
     let configuration: ZoneConfiguration
-    let onChange: (ZoneActionConfiguration) -> Bool
+    let onChangeSingle: (ZoneActionConfiguration) -> Bool
+    let onChangeDouble: (ZoneActionConfiguration?) -> Bool
     let onTest: (ZoneActionConfiguration) -> Void
     let onError: (Error) -> Void
-    @State private var action: ZoneActionConfiguration
-    @State private var isRevertingFailedSave = false
 
-    private let sounds = ["Tink", "Pop", "Ping", "Glass", "Funk", "Morse", "Purr", "Sosumi"]
+    @State private var single: ZoneActionConfiguration
+    @State private var double: ZoneActionConfiguration
+    @State private var showDouble: Bool
+    @State private var revertingSingle = false
+    @State private var revertingDouble = false
 
     init(
         configuration: ZoneConfiguration,
-        onChange: @escaping (ZoneActionConfiguration) -> Bool,
+        onChangeSingle: @escaping (ZoneActionConfiguration) -> Bool,
+        onChangeDouble: @escaping (ZoneActionConfiguration?) -> Bool,
         onTest: @escaping (ZoneActionConfiguration) -> Void,
         onError: @escaping (Error) -> Void
     ) {
         self.configuration = configuration
-        self.onChange = onChange
+        self.onChangeSingle = onChangeSingle
+        self.onChangeDouble = onChangeDouble
         self.onTest = onTest
         self.onError = onError
-        _action = State(initialValue: configuration.action)
+        _single = State(initialValue: configuration.action)
+        _double = State(initialValue: configuration.doubleTapAction ?? ZoneActionConfiguration(kind: .none))
+        _showDouble = State(initialValue: (configuration.doubleTapAction?.kind ?? .none) != .none)
     }
 
     var body: some View {
@@ -182,15 +187,59 @@ private struct ZoneActionRow: View {
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
                 Spacer(minLength: 12)
-                Button("Test", systemImage: "play.fill") {
-                    onTest(action)
-                }
-                .labelStyle(.iconOnly)
-                .buttonStyle(.borderless)
-                .disabled(!canTest)
-                .help(canTest ? "Test this action" : "Finish configuring this action before testing")
             }
 
+            ActionEditor(action: $single, onTest: onTest, onError: onError)
+
+            DisclosureGroup(isExpanded: $showDouble) {
+                ActionEditor(action: $double, onTest: onTest, onError: onError)
+                    .padding(.top, 10)
+            } label: {
+                HStack(spacing: 8) {
+                    Text("Double-tap action")
+                        .font(.system(size: 13, weight: .medium))
+                    if double.kind != .none {
+                        Text(double.kind.displayName)
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .holoCard()
+        .onChange(of: single) { oldValue, newValue in
+            if revertingSingle { revertingSingle = false; return }
+            if !onChangeSingle(newValue) {
+                revertingSingle = true
+                single = oldValue
+            }
+        }
+        .onChange(of: double) { oldValue, newValue in
+            if revertingDouble { revertingDouble = false; return }
+            // A "Visual only" double-tap clears it (stored as nil).
+            let payload: ZoneActionConfiguration? = newValue.kind == .none ? nil : newValue
+            if !onChangeDouble(payload) {
+                revertingDouble = true
+                double = oldValue
+            }
+        }
+    }
+}
+
+/// A single action editor: the kind picker, a Test button, and the fields the
+/// selected kind needs. Reused for both a zone's single-tap and double-tap
+/// actions, bound to whichever configuration it's given.
+private struct ActionEditor: View {
+    @Binding var action: ZoneActionConfiguration
+    let onTest: (ZoneActionConfiguration) -> Void
+    let onError: (Error) -> Void
+
+    private let sounds = ["Tink", "Pop", "Ping", "Glass", "Funk", "Morse", "Purr", "Sosumi"]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 12) {
                 Text("Action")
                     .font(.system(size: 13))
@@ -202,23 +251,17 @@ private struct ZoneActionRow: View {
                 }
                 .labelsHidden()
                 .frame(width: 200)
+                Button("Test", systemImage: "play.fill") {
+                    onTest(action)
+                }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.borderless)
+                .disabled(!canTest)
+                .help(canTest ? "Test this action" : "Finish configuring this action before testing")
             }
 
             detailControl
                 .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .holoCard()
-        .onChange(of: action) { oldValue, newValue in
-            if isRevertingFailedSave {
-                isRevertingFailedSave = false
-                return
-            }
-            if !onChange(newValue) {
-                isRevertingFailedSave = true
-                action = oldValue
-            }
         }
     }
 

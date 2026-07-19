@@ -21,6 +21,7 @@
 		2FEB113908FC6ED2E46F05C2 /* FFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C797ED25B4E0F506DC4F10 /* FFT.swift */; };
 		3563E03062C5F439A01E87B5 /* WaveFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97704CED99344632D2F7E3C /* WaveFileWriter.swift */; };
 		3903B8C21FF3EB27EB292FBF /* GuidedSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E16C01A483EE0B2355493E69 /* GuidedSessionTests.swift */; };
+		3E0B804696169F25274B595B /* TapGestureResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F26ACBBC312A7D12E263233 /* TapGestureResolverTests.swift */; };
 		3F56A196EB5FB45FFCBFC38C /* EvaluationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3398CF16BF083A03B5897A9 /* EvaluationView.swift */; };
 		49B637BE1448B5A1FE8FAC1F /* LocalActionPlanning.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED798B1FD296DDD1C10BEB25 /* LocalActionPlanning.swift */; };
 		501C86E4939EBA7FD4A80340 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138781D29C8F493B4BEBF347 /* AppModel.swift */; };
@@ -43,6 +44,7 @@
 		8312B2EACF8033110C5296B9 /* GuidedCaptureQuality.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79925025DC399059AC395026 /* GuidedCaptureQuality.swift */; };
 		91D45F930D4E8B87C24DE06F /* ActiveProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14EA5B348B95306264179465 /* ActiveProbe.swift */; };
 		954E32E4BA2EEBC3588330B5 /* HoloCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E426090AD292A90A8D04E8A /* HoloCore.framework */; };
+		95ADFA4E0008F13E2E84E481 /* TapGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = DED2496A91DF4F00555DB67B /* TapGesture.swift */; };
 		982737BAE8582ADB7DB0C1B6 /* ZoneTopologyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBB34244A6DD0993CECF316 /* ZoneTopologyTests.swift */; };
 		9FD97FE7807945F49D11F6B3 /* AudioTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEFBD981FF1B34ED6121E9F /* AudioTimeline.swift */; };
 		A334F8CE28404126C9887581 /* MenuBarPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22DFF3342D8E06E222C5CDDF /* MenuBarPanel.swift */; };
@@ -60,6 +62,7 @@
 		D9B962FDD8C65B65A750C49D /* CalibrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06C2F6E8443039D83D1F6B16 /* CalibrationView.swift */; };
 		E432550D743B42A4815F7843 /* LocalActionPlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E98E621F82CBBE59FD3A41C /* LocalActionPlannerTests.swift */; };
 		E8B9DECE1EEA7A6F9B90E876 /* HoloCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E426090AD292A90A8D04E8A /* HoloCore.framework */; };
+		EE2F4B0C8CA1988179CC11EF /* DoubleTapProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76AC71CE302505A23DE5C878 /* DoubleTapProfileTests.swift */; };
 		EE5BF492555CC29227556B78 /* MenuBarStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE37F830B78218C5BF881F2F /* MenuBarStatus.swift */; };
 		F129CE57FFD1555BB0DD06AA /* AudioTimelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35269A8759E31FCD6471E5E /* AudioTimelineTests.swift */; };
 		F2DFDBC7F1FFEA5FE7055058 /* HoloCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1E426090AD292A90A8D04E8A /* HoloCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -153,6 +156,7 @@
 		5D9A4872F0AF435869BAE285 /* AudioHardwarePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioHardwarePolicy.swift; sourceTree = "<group>"; };
 		634844CB07B4E483B2423FEB /* AudioCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureService.swift; sourceTree = "<group>"; };
 		69E4D6C427B2356EFA9861AD /* GuidedSessions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSessions.swift; sourceTree = "<group>"; };
+		76AC71CE302505A23DE5C878 /* DoubleTapProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleTapProfileTests.swift; sourceTree = "<group>"; };
 		786309E60E647EA3FC80EFEC /* SignalModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalModels.swift; sourceTree = "<group>"; };
 		79925025DC399059AC395026 /* GuidedCaptureQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedCaptureQuality.swift; sourceTree = "<group>"; };
 		842EC62CC014DA5394B1689E /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
@@ -161,6 +165,7 @@
 		8DD162A27694A39536B08B76 /* DiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsView.swift; sourceTree = "<group>"; };
 		8E1D1C9C0CD80F11D490685E /* HoloTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoloTheme.swift; sourceTree = "<group>"; };
 		8E202AF9AF65D4A6DAD062BA /* PersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceTests.swift; sourceTree = "<group>"; };
+		9F26ACBBC312A7D12E263233 /* TapGestureResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapGestureResolverTests.swift; sourceTree = "<group>"; };
 		9F71702ABD6F816E14DCE97F /* HoloCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HoloCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9FE34803263D649D4BCD0736 /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
 		A36F157ED33FCF6F689804F7 /* SystemAudioRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemAudioRoute.swift; sourceTree = "<group>"; };
@@ -175,6 +180,7 @@
 		D9FC3D4D5C46CF5CFA909429 /* AsyncBooleanRequestGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncBooleanRequestGate.swift; sourceTree = "<group>"; };
 		DC2F285F73EF896D8A3EF6EF /* LocalActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalActions.swift; sourceTree = "<group>"; };
 		DD429399EABE14BA1A5A84CF /* Zone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Zone.swift; sourceTree = "<group>"; };
+		DED2496A91DF4F00555DB67B /* TapGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapGesture.swift; sourceTree = "<group>"; };
 		DFBB34244A6DD0993CECF316 /* ZoneTopologyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoneTopologyTests.swift; sourceTree = "<group>"; };
 		E112452DBE7F997A2D3F5A09 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		E16C01A483EE0B2355493E69 /* GuidedSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSessionTests.swift; sourceTree = "<group>"; };
@@ -232,6 +238,7 @@
 				A905A97F45BFE70DF240318C /* ClassifierTests.swift */,
 				B180C49547DBDBC6E586C0D8 /* ConfidenceGateTests.swift */,
 				89EDE7CBFB7D30EF016984BB /* DetectorTests.swift */,
+				76AC71CE302505A23DE5C878 /* DoubleTapProfileTests.swift */,
 				3B4A042398108C34F1A28654 /* EvaluationTests.swift */,
 				FC892138F3ABE811DD0C9B9E /* FeatureExtractorTests.swift */,
 				0861DC8B2455D59B07317D16 /* GuidedCaptureQualityTests.swift */,
@@ -240,6 +247,7 @@
 				5AABDA409806CD0D708573E3 /* MenuBarStatusTests.swift */,
 				8E202AF9AF65D4A6DAD062BA /* PersistenceTests.swift */,
 				0BA724F536C59813B17CD8E1 /* PipelineIntegrationTests.swift */,
+				9F26ACBBC312A7D12E263233 /* TapGestureResolverTests.swift */,
 				DFBB34244A6DD0993CECF316 /* ZoneTopologyTests.swift */,
 			);
 			path = HoloCoreTests;
@@ -290,6 +298,7 @@
 				4309D604E85EE59914AF3D6E /* StreamingTapDetector.swift */,
 				22CE6C6197BF592E291E6E19 /* TapClassifier.swift */,
 				1A3B1261978D3FB91C9EA104 /* TapFeatureExtractor.swift */,
+				DED2496A91DF4F00555DB67B /* TapGesture.swift */,
 				E97704CED99344632D2F7E3C /* WaveFileWriter.swift */,
 				DD429399EABE14BA1A5A84CF /* Zone.swift */,
 			);
@@ -549,6 +558,7 @@
 				FC9A309AC7E561E7421C4FBA /* ClassifierTests.swift in Sources */,
 				D6C8B95017D67959C8B9F7A2 /* ConfidenceGateTests.swift in Sources */,
 				5B7C275226A76CE84A986426 /* DetectorTests.swift in Sources */,
+				EE2F4B0C8CA1988179CC11EF /* DoubleTapProfileTests.swift in Sources */,
 				FF12D620E6DF5A4DFABC3A5F /* EvaluationTests.swift in Sources */,
 				00393C6A55E3BC29CE9658DE /* FeatureExtractorTests.swift in Sources */,
 				B546EC42C1EB50E7B4D27FE7 /* GuidedCaptureQualityTests.swift in Sources */,
@@ -557,6 +567,7 @@
 				2B8A1C31FF0716369B56CDEC /* MenuBarStatusTests.swift in Sources */,
 				5BA2A1CF3E0DCE6A8C4F698A /* PersistenceTests.swift in Sources */,
 				70C2F5C3E9CE788F9FF340C6 /* PipelineIntegrationTests.swift in Sources */,
+				3E0B804696169F25274B595B /* TapGestureResolverTests.swift in Sources */,
 				982737BAE8582ADB7DB0C1B6 /* ZoneTopologyTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -582,6 +593,7 @@
 				653C982EB91008985B1EDD49 /* StreamingTapDetector.swift in Sources */,
 				B533882F0649DCFED1CC0D3C /* TapClassifier.swift in Sources */,
 				82952E46E4E37D1902510BF6 /* TapFeatureExtractor.swift in Sources */,
+				95ADFA4E0008F13E2E84E481 /* TapGesture.swift in Sources */,
 				3563E03062C5F439A01E87B5 /* WaveFileWriter.swift in Sources */,
 				0F5D1CD5D1CCF1B11927B9BA /* Zone.swift in Sources */,
 			);

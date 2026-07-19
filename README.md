@@ -25,6 +25,9 @@ The requirement-by-requirement evidence ledger is in [ACCEPTANCE.md](ACCEPTANCE.
 - Passive tap acoustics, an optional active acoustic probe, and a hybrid mode.
 - Robust feature normalization, a regularized linear zone model backed by nearest-example novelty checks, ambiguity rejection, out-of-distribution rejection, and optional negative examples.
 - Per-profile actions: visual only, play a sound, copy or speak text, open a website, run a Shortcut, open an application or item, execute a shell command, or capture a screenshot. New zones default to visual-only until the user assigns a side effect.
+- Single-tap and optional double-tap actions per zone: a zone can run one action on a single tap and a different action on a double tap, doubling the command vocabulary without needing finer spatial resolution.
+- Confidence-gated dispatch: consequential actions (open an app or website, screenshot, shell command) require higher classifier confidence than benign ones, and shell commands require the strongest signal. A borderline tap still identifies its zone but withholds the side effect.
+- A menu bar item with the Holo ripple mark and a quick-status panel (listening state, last tap, pause/resume, open window). The glyph pulses on each accepted tap, so live feedback is visible even when the main window is closed.
 - Guided 60-tap held-out evaluation with per-zone accuracy, latency, rejected-tap counts, and a confusion matrix.
 - Saved evaluation history is restored after relaunch and scoped to the desk profile that produced it.
 - Signal diagnostics, labeled feature capture, approach comparison, JSON/CSV reports, and opt-in raw debug WAV capture.

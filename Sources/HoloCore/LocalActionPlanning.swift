@@ -117,4 +117,14 @@ public enum LocalActionDispatchPolicy {
         allowsAutomaticDispatch(for: decision, isDeskActive: isDeskActive)
             && decision.confidence >= action.minimumAutomaticConfidence
     }
+
+    /// Confidence-only variant, for an already-accepted gesture where the raw
+    /// decision is no longer at hand (e.g. a resolved single/double-tap).
+    public static func allowsAutomaticDispatch(
+        confidence: Double,
+        action: ZoneActionKind,
+        isDeskActive: Bool
+    ) -> Bool {
+        isDeskActive && confidence >= action.minimumAutomaticConfidence
+    }
 }

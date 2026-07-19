@@ -111,6 +111,8 @@ final class AppModel: ObservableObject {
     private var evaluationArmTask: Task<Void, Never>?
     private var benchmarkArmTask: Task<Void, Never>?
     private var activeZoneClearTask: Task<Void, Never>?
+    private var gestureResolver = TapGestureResolver()
+    private var gestureFlushTask: Task<Void, Never>?
     private var pausedByUser = false
     private var cancellables: Set<AnyCancellable> = []
 
@@ -257,6 +259,7 @@ final class AppModel: ObservableObject {
             audio.stop()
             statusMessage = "Paused"
             activeZone = nil
+            resetGestureResolution()
         } else if selectedProfile == nil && guidedSection == nil {
             openSetup()
         } else {
@@ -277,6 +280,7 @@ final class AppModel: ObservableObject {
         activeZoneClearTask?.cancel()
         activeZone = nil
         lastDecision = nil
+        resetGestureResolution()
         refreshLatestEvaluation()
         if let profile = selectedProfile {
             calibrationDraft = draft(for: profile)
@@ -668,6 +672,23 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// Sets (or clears, with `nil`) the double-tap action for a zone.
+    func updateDoubleTapAction(for zone: DeskZone, action: ZoneActionConfiguration?) -> Bool {
+        guard let profileIndex = profiles.firstIndex(where: { $0.id == selectedProfileID }),
+              let zoneIndex = profiles[profileIndex].zones.firstIndex(where: { $0.zone == zone }) else { return false }
+        var updatedProfile = profiles[profileIndex]
+        updatedProfile.zones[zoneIndex].doubleTapAction = action
+        do {
+            guard let profileStore else { throw HoloStorageError.unavailable("Desk profile") }
+            try profileStore.save(updatedProfile)
+            profiles[profileIndex] = updatedProfile
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
+
     func testAction(_ action: ZoneActionConfiguration) {
         do { try actionDispatcher.perform(action) }
         catch { errorMessage = error.localizedDescription }
@@ -774,28 +795,79 @@ final class AppModel: ObservableObject {
         decision.processingLatencyMilliseconds = observation.processingLatencyMilliseconds
         present(decision)
         if let zone = decision.zone {
-            let action = profile.action(for: zone)
             if section != .live {
                 statusMessage = "\(zone.displayName) detected • actions paused outside Desk"
-            } else if LocalActionDispatchPolicy.allowsAutomaticDispatch(
-                for: decision,
-                action: action.kind,
-                isDeskActive: true
-            ) {
-                statusMessage = "\(zone.displayName) • \(Int(decision.confidence * 100))% confidence"
-                do { try actionDispatcher.perform(action) }
-                catch {
-                    statusMessage = "\(zone.displayName) accepted • action failed"
-                    errorMessage = error.localizedDescription
-                }
             } else {
-                // Accepted on Desk, but confidence is below this action's automatic
-                // bar. The zone is shown; the side effect is withheld.
-                statusMessage = "\(zone.displayName) • \(Int(decision.confidence * 100))% — tap more clearly to run its action"
+                // Route accepted Desk taps through gesture resolution so a zone
+                // with a double-tap action can distinguish single from double.
+                let event = TapEvent(
+                    zone: zone,
+                    time: ProcessInfo.processInfo.systemUptime,
+                    confidence: decision.confidence
+                )
+                let supportsDouble = profile.hasDoubleTapAction(for: zone)
+                for gesture in gestureResolver.register(event, supportsDouble: supportsDouble) {
+                    dispatchGesture(gesture, profile: profile)
+                }
+                scheduleGestureFlushIfNeeded(profile: profile)
             }
         } else {
             statusMessage = "Rejected • \(decision.rejectionReason?.displayName ?? "low confidence")"
         }
+    }
+
+    /// Runs the action assigned to a resolved single/double-tap gesture, applying
+    /// the per-action confidence gate. The zone was already shown by `present`.
+    private func dispatchGesture(_ gesture: TapGesture, profile: HoloProfile) {
+        let zone = gesture.zone
+        let action: ZoneActionConfiguration
+        let label: String
+        if gesture.isDouble, let doubleAction = profile.doubleTapAction(for: zone) {
+            action = doubleAction
+            label = "Double-tap \(zone.displayName)"
+        } else {
+            action = profile.action(for: zone)
+            label = zone.displayName
+        }
+
+        let percent = Int(gesture.confidence * 100)
+        guard LocalActionDispatchPolicy.allowsAutomaticDispatch(
+            confidence: gesture.confidence,
+            action: action.kind,
+            isDeskActive: section == .live
+        ) else {
+            statusMessage = "\(label) • \(percent)% — tap more clearly to run its action"
+            return
+        }
+
+        statusMessage = "\(label) • \(percent)% confidence"
+        do { try actionDispatcher.perform(action) }
+        catch {
+            statusMessage = "\(label) accepted • action failed"
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    /// When a tap is buffered awaiting a possible second, resolve it as a single
+    /// once the double-tap window elapses.
+    private func scheduleGestureFlushIfNeeded(profile: HoloProfile) {
+        guard gestureResolver.pendingEvent != nil else { return }
+        gestureFlushTask?.cancel()
+        let window = gestureResolver.window
+        gestureFlushTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(window + 0.02))
+            guard let self, !Task.isCancelled else { return }
+            let now = ProcessInfo.processInfo.systemUptime
+            for gesture in self.gestureResolver.flush(at: now) {
+                self.dispatchGesture(gesture, profile: profile)
+            }
+        }
+    }
+
+    private func resetGestureResolution() {
+        gestureFlushTask?.cancel()
+        gestureFlushTask = nil
+        gestureResolver = TapGestureResolver(window: gestureResolver.window)
     }
 
     private func handleCalibration(_ observation: TapObservation, session: inout CalibrationSession) {

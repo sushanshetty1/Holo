@@ -54,11 +54,19 @@ public struct ZoneActionConfiguration: Codable, Equatable, Sendable {
 public struct ZoneConfiguration: Codable, Equatable, Sendable, Identifiable {
     public var zone: DeskZone
     public var action: ZoneActionConfiguration
+    /// Optional action for a double-tap in this zone. Absent in pre-gesture
+    /// profiles (decodes as `nil`), so existing profiles keep loading unchanged.
+    public var doubleTapAction: ZoneActionConfiguration?
     public var id: Int { zone.rawValue }
 
-    public init(zone: DeskZone, action: ZoneActionConfiguration = ZoneActionConfiguration()) {
+    public init(
+        zone: DeskZone,
+        action: ZoneActionConfiguration = ZoneActionConfiguration(),
+        doubleTapAction: ZoneActionConfiguration? = nil
+    ) {
         self.zone = zone
         self.action = action
+        self.doubleTapAction = doubleTapAction
     }
 }
 
@@ -115,6 +123,18 @@ public struct HoloProfile: Codable, Equatable, Sendable, Identifiable {
 
     public func action(for zone: DeskZone) -> ZoneActionConfiguration {
         zones.first(where: { $0.zone == zone })?.action ?? ZoneActionConfiguration(kind: .none)
+    }
+
+    /// The double-tap action for a zone, if one is configured.
+    public func doubleTapAction(for zone: DeskZone) -> ZoneActionConfiguration? {
+        zones.first(where: { $0.zone == zone })?.doubleTapAction
+    }
+
+    /// Whether this zone has a meaningful double-tap action (used to decide
+    /// whether taps in the zone need double-tap disambiguation).
+    public func hasDoubleTapAction(for zone: DeskZone) -> Bool {
+        guard let action = doubleTapAction(for: zone) else { return false }
+        return action.kind != .none
     }
 }
 
