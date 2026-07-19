@@ -74,6 +74,27 @@ public enum LocalActionPlanner {
     }
 }
 
+public extension ZoneActionKind {
+    /// The minimum classifier confidence required to *automatically* run this
+    /// action. An accepted tap always identifies its zone, but consequential
+    /// actions demand a clearer decision than the base accept, so a borderline
+    /// tap cannot fire something with real side effects.
+    var minimumAutomaticConfidence: Double {
+        switch self {
+        case .none, .sound, .copyText, .speakText:
+            // Benign: reversible or purely local. The base accept is enough.
+            return ClassifierDefaults.minimumConfidence
+        case .openURL, .runShortcut, .openApplication, .openItem,
+             .screenshotClipboard, .screenshotSelection:
+            // Consequential: launches something or captures the screen.
+            return 0.50
+        case .runShellCommand:
+            // Highest impact: runs arbitrary code. Require the strongest signal.
+            return 0.62
+        }
+    }
+}
+
 public enum LocalActionDispatchPolicy {
     /// Automatic side effects are confined to the live Desk surface. Guided
     /// capture and configuration screens can still classify for feedback, but
@@ -83,5 +104,17 @@ public enum LocalActionDispatchPolicy {
         isDeskActive: Bool
     ) -> Bool {
         isDeskActive && decision.wasAccepted
+    }
+
+    /// As above, but also requires the decision's confidence to clear the
+    /// action's automatic bar. The zone is still identified for visual feedback
+    /// when this returns `false`; only the side effect is withheld.
+    public static func allowsAutomaticDispatch(
+        for decision: ClassificationDecision,
+        action: ZoneActionKind,
+        isDeskActive: Bool
+    ) -> Bool {
+        allowsAutomaticDispatch(for: decision, isDeskActive: isDeskActive)
+            && decision.confidence >= action.minimumAutomaticConfidence
     }
 }

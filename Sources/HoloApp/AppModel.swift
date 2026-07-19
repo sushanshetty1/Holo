@@ -774,18 +774,24 @@ final class AppModel: ObservableObject {
         decision.processingLatencyMilliseconds = observation.processingLatencyMilliseconds
         present(decision)
         if let zone = decision.zone {
-            if LocalActionDispatchPolicy.allowsAutomaticDispatch(
+            let action = profile.action(for: zone)
+            if section != .live {
+                statusMessage = "\(zone.displayName) detected • actions paused outside Desk"
+            } else if LocalActionDispatchPolicy.allowsAutomaticDispatch(
                 for: decision,
-                isDeskActive: section == .live
+                action: action.kind,
+                isDeskActive: true
             ) {
                 statusMessage = "\(zone.displayName) • \(Int(decision.confidence * 100))% confidence"
-                do { try actionDispatcher.perform(profile.action(for: zone)) }
+                do { try actionDispatcher.perform(action) }
                 catch {
                     statusMessage = "\(zone.displayName) accepted • action failed"
                     errorMessage = error.localizedDescription
                 }
             } else {
-                statusMessage = "\(zone.displayName) detected • actions paused outside Desk"
+                // Accepted on Desk, but confidence is below this action's automatic
+                // bar. The zone is shown; the side effect is withheld.
+                statusMessage = "\(zone.displayName) • \(Int(decision.confidence * 100))% — tap more clearly to run its action"
             }
         } else {
             statusMessage = "Rejected • \(decision.rejectionReason?.displayName ?? "low confidence")"

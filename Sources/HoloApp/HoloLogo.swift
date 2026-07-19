@@ -24,14 +24,17 @@ enum HoloLogo {
     /// A template (auto-tinting) menu bar image. The listening variant fills the
     /// center; the paused variant hollows it and fades the rings so the glyph
     /// reads as inactive at a glance.
-    static func menuBarImage(listening: Bool) -> NSImage {
-        listening ? listeningImage : pausedImage
+    static func menuBarImage(listening: Bool, emphasized: Bool = false) -> NSImage {
+        if emphasized { return emphasizedImage }
+        return listening ? listeningImage : pausedImage
     }
 
-    private static let listeningImage = makeMenuBarImage(listening: true)
-    private static let pausedImage = makeMenuBarImage(listening: false)
+    private static let listeningImage = makeMenuBarImage(listening: true, emphasized: false)
+    private static let pausedImage = makeMenuBarImage(listening: false, emphasized: false)
+    /// A brief "tap landed" pulse: the ripple fills in for a fraction of a second.
+    private static let emphasizedImage = makeMenuBarImage(listening: true, emphasized: true)
 
-    private static func makeMenuBarImage(listening: Bool) -> NSImage {
+    private static func makeMenuBarImage(listening: Bool, emphasized: Bool) -> NSImage {
         let side: CGFloat = 18
         let image = NSImage(size: NSSize(width: side, height: side), flipped: false) { rect in
             let center = CGPoint(x: rect.midX, y: rect.midY)
@@ -43,6 +46,15 @@ enum HoloLogo {
                 path.lineWidth = s * lineWidth
                 NSColor.black.withAlphaComponent(alpha).setStroke()
                 path.stroke()
+            }
+
+            if emphasized {
+                // Bright outer ring + a filled inner disc: reads as a quick pulse.
+                ring(radius: Metric.outerRadius, lineWidth: Metric.outerLineWidth * 1.5, alpha: 0.75)
+                let discR = s * Metric.innerRadius
+                NSColor.black.setFill()
+                NSBezierPath(ovalIn: CGRect(x: center.x - discR, y: center.y - discR, width: discR * 2, height: discR * 2)).fill()
+                return true
             }
 
             ring(radius: Metric.outerRadius, lineWidth: Metric.outerLineWidth, alpha: Metric.outerAlpha(listening: listening))

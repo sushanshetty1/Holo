@@ -10,12 +10,23 @@ final class HoloAppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-/// Observes the model so the menu bar glyph reflects listening vs. paused state.
+/// Observes the model so the menu bar glyph reflects listening vs. paused state,
+/// and briefly pulses when a tap is accepted — live feedback even when the main
+/// window is closed.
 private struct MenuBarLabel: View {
     @ObservedObject var model: AppModel
+    @State private var flashing = false
 
     var body: some View {
-        Image(nsImage: HoloLogo.menuBarImage(listening: model.audio.isListening))
+        Image(nsImage: HoloLogo.menuBarImage(listening: model.audio.isListening, emphasized: flashing))
+            .onChange(of: model.lastDecision) { _, decision in
+                guard decision?.wasAccepted == true else { return }
+                flashing = true
+                Task {
+                    try? await Task.sleep(for: .milliseconds(260))
+                    flashing = false
+                }
+            }
     }
 }
 
