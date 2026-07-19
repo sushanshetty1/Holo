@@ -32,6 +32,8 @@ struct LiveSurfaceView: View {
 
             resultStrip
 
+            learningHint
+
             Spacer(minLength: 28)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -95,6 +97,21 @@ struct LiveSurfaceView: View {
 
             Spacer()
 
+            if model.canCorrectLastTap {
+                Menu {
+                    Section("That tap was actually…") {
+                        ForEach(DeskZone.allCases) { zone in
+                            Button(zone.displayName) { model.correctLastTap(to: zone) }
+                        }
+                    }
+                } label: {
+                    Label("Fix zone", systemImage: "arrow.uturn.backward")
+                }
+                .menuStyle(.borderlessButton)
+                .fixedSize()
+                .help("Tell Holo the correct zone for the last tap. It learns from your real taps to improve accuracy.")
+            }
+
             Button("Recalibrate", systemImage: "arrow.triangle.2.circlepath") {
                 model.prepareRecalibration()
             }
@@ -103,6 +120,16 @@ struct LiveSurfaceView: View {
         .padding(16)
         .frame(maxWidth: 720)
         .holoCard()
+    }
+
+    private var learningHint: some View {
+        Label(
+            "Wrong zone? Use Fix zone to teach Holo from your real taps — a few corrections per zone noticeably improves a marginal calibration.",
+            systemImage: "lightbulb"
+        )
+        .font(.system(size: 11))
+        .foregroundStyle(.secondary)
+        .frame(maxWidth: 720, alignment: .leading)
     }
 
     private var lastResultTitle: String {

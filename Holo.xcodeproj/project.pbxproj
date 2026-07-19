@@ -13,6 +13,7 @@
 		0F5D1CD5D1CCF1B11927B9BA /* Zone.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD429399EABE14BA1A5A84CF /* Zone.swift */; };
 		129303414A1AD286FDEC0D04 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = E112452DBE7F997A2D3F5A09 /* main.swift */; };
 		1CF0B14F773C8DC088C1F50A /* ImpactEventGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50EC1749E3FB99D9FA73F60 /* ImpactEventGate.swift */; };
+		1EF8208B40439BD75D961071 /* ClassifierAdaptationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D558AB0713C17E72F528B97D /* ClassifierAdaptationTests.swift */; };
 		1F5E259A3212B2D56F4FDB43 /* LiveSurfaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8276F53CD4BAD0E4134BE5E /* LiveSurfaceView.swift */; };
 		236657FC272AE9DBB7EA7199 /* AsyncBooleanRequestGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9FC3D4D5C46CF5CFA909429 /* AsyncBooleanRequestGate.swift */; };
 		268A0893E345154C533CF925 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FD4995B0612707674D54A0F2 /* Assets.xcassets */; };
@@ -23,6 +24,7 @@
 		3903B8C21FF3EB27EB292FBF /* GuidedSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E16C01A483EE0B2355493E69 /* GuidedSessionTests.swift */; };
 		3E0B804696169F25274B595B /* TapGestureResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F26ACBBC312A7D12E263233 /* TapGestureResolverTests.swift */; };
 		3F56A196EB5FB45FFCBFC38C /* EvaluationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3398CF16BF083A03B5897A9 /* EvaluationView.swift */; };
+		460E865A3C1AB74666932919 /* ClassifierAdaptation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B8F60328052ED504F966E8E /* ClassifierAdaptation.swift */; };
 		49B637BE1448B5A1FE8FAC1F /* LocalActionPlanning.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED798B1FD296DDD1C10BEB25 /* LocalActionPlanning.swift */; };
 		501C86E4939EBA7FD4A80340 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138781D29C8F493B4BEBF347 /* AppModel.swift */; };
 		53B53A46371B34216E082389 /* AudioHardwarePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1637550E7F75A6E7BFCE8862 /* AudioHardwarePolicyTests.swift */; };
@@ -148,6 +150,7 @@
 		2962986A4A520497F2F80CFD /* HoloRouteCheck */ = {isa = PBXFileReference; includeInIndex = 0; path = HoloRouteCheck; sourceTree = BUILT_PRODUCTS_DIR; };
 		2E6B8C00F78E8C0E42D3D7AA /* HoloLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoloLogo.swift; sourceTree = "<group>"; };
 		3B4A042398108C34F1A28654 /* EvaluationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvaluationTests.swift; sourceTree = "<group>"; };
+		3B8F60328052ED504F966E8E /* ClassifierAdaptation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassifierAdaptation.swift; sourceTree = "<group>"; };
 		4309D604E85EE59914AF3D6E /* StreamingTapDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamingTapDetector.swift; sourceTree = "<group>"; };
 		4B9EA1642DC1B50D9B998D42 /* DeskMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeskMapView.swift; sourceTree = "<group>"; };
 		4E98E621F82CBBE59FD3A41C /* LocalActionPlannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalActionPlannerTests.swift; sourceTree = "<group>"; };
@@ -177,6 +180,7 @@
 		CE37F830B78218C5BF881F2F /* MenuBarStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarStatus.swift; sourceTree = "<group>"; };
 		D2314DF6CA5215BF112A083E /* ActiveProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveProbeTests.swift; sourceTree = "<group>"; };
 		D35269A8759E31FCD6471E5E /* AudioTimelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioTimelineTests.swift; sourceTree = "<group>"; };
+		D558AB0713C17E72F528B97D /* ClassifierAdaptationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassifierAdaptationTests.swift; sourceTree = "<group>"; };
 		D9FC3D4D5C46CF5CFA909429 /* AsyncBooleanRequestGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncBooleanRequestGate.swift; sourceTree = "<group>"; };
 		DC2F285F73EF896D8A3EF6EF /* LocalActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalActions.swift; sourceTree = "<group>"; };
 		DD429399EABE14BA1A5A84CF /* Zone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Zone.swift; sourceTree = "<group>"; };
@@ -235,6 +239,7 @@
 				50AC2C28BEB4F4997E61E917 /* AsyncBooleanRequestGateTests.swift */,
 				1637550E7F75A6E7BFCE8862 /* AudioHardwarePolicyTests.swift */,
 				D35269A8759E31FCD6471E5E /* AudioTimelineTests.swift */,
+				D558AB0713C17E72F528B97D /* ClassifierAdaptationTests.swift */,
 				A905A97F45BFE70DF240318C /* ClassifierTests.swift */,
 				B180C49547DBDBC6E586C0D8 /* ConfidenceGateTests.swift */,
 				89EDE7CBFB7D30EF016984BB /* DetectorTests.swift */,
@@ -285,6 +290,7 @@
 				D9FC3D4D5C46CF5CFA909429 /* AsyncBooleanRequestGate.swift */,
 				5D9A4872F0AF435869BAE285 /* AudioHardwarePolicy.swift */,
 				1EEFBD981FF1B34ED6121E9F /* AudioTimeline.swift */,
+				3B8F60328052ED504F966E8E /* ClassifierAdaptation.swift */,
 				18F542BE59EBC93B85BBB829 /* Diagnostics.swift */,
 				05B0B1413010873D3FA1A528 /* Evaluation.swift */,
 				C1C797ED25B4E0F506DC4F10 /* FFT.swift */,
@@ -555,6 +561,7 @@
 				669B1B1233F19374FDA86C62 /* AsyncBooleanRequestGateTests.swift in Sources */,
 				53B53A46371B34216E082389 /* AudioHardwarePolicyTests.swift in Sources */,
 				F129CE57FFD1555BB0DD06AA /* AudioTimelineTests.swift in Sources */,
+				1EF8208B40439BD75D961071 /* ClassifierAdaptationTests.swift in Sources */,
 				FC9A309AC7E561E7421C4FBA /* ClassifierTests.swift in Sources */,
 				D6C8B95017D67959C8B9F7A2 /* ConfidenceGateTests.swift in Sources */,
 				5B7C275226A76CE84A986426 /* DetectorTests.swift in Sources */,
@@ -580,6 +587,7 @@
 				236657FC272AE9DBB7EA7199 /* AsyncBooleanRequestGate.swift in Sources */,
 				B1655BAB332615B1EE91D6AE /* AudioHardwarePolicy.swift in Sources */,
 				9FD97FE7807945F49D11F6B3 /* AudioTimeline.swift in Sources */,
+				460E865A3C1AB74666932919 /* ClassifierAdaptation.swift in Sources */,
 				601F74CFC9FCE1AC967CA0F1 /* Diagnostics.swift in Sources */,
 				C16C06EB015CDDAE4533968C /* Evaluation.swift in Sources */,
 				2FEB113908FC6ED2E46F05C2 /* FFT.swift in Sources */,

@@ -78,6 +78,9 @@ final class AppModel: ObservableObject {
     @Published var selectedProfileID: UUID?
     @Published private(set) var activeZone: DeskZone?
     @Published private(set) var lastDecision: ClassificationDecision?
+    /// Feature of the most recent live tap, retained so the user can correct its
+    /// zone and teach the classifier from a real tap.
+    @Published private(set) var lastLiveFeature: TapFeatureVector?
     @Published private(set) var statusMessage = "Ready to map your desk"
     @Published private(set) var calibrationSession: CalibrationSession?
     @Published private(set) var calibrationValidation: CrossValidationResult?
@@ -694,6 +697,38 @@ final class AppModel: ObservableObject {
         catch { errorMessage = error.localizedDescription }
     }
 
+    /// True when there is a recent live tap that can be corrected.
+    var canCorrectLastTap: Bool { lastLiveFeature != nil && selectedProfile != nil }
+
+    /// Teaches the classifier that the last live tap actually belonged to `zone`:
+    /// the tap's features are added as a new example, the model is retrained, and
+    /// the updated profile is saved. This adapts the model to real taps where a
+    /// marginal calibration is weakest.
+    func correctLastTap(to zone: DeskZone) {
+        guard let feature = lastLiveFeature, let profile = selectedProfile else { return }
+        do {
+            let result = try ClassifierAdaptation.addingExample(feature, zone: zone, to: profile.classifier)
+            var updated = profile
+            updated.classifier = result.classifier
+            updated.calibration = result.summary
+            guard let profileStore else { throw HoloStorageError.unavailable("Desk profile") }
+            try profileStore.save(updated)
+            if let index = profiles.firstIndex(where: { $0.id == profile.id }) {
+                profiles[index] = updated
+            }
+            calibrationDraft = draft(for: updated)
+            lastLiveFeature = nil
+            activeZone = zone
+            if let agreement = result.summary.leaveOneOutAccuracy {
+                statusMessage = "Learned \(zone.displayName) • \(Int(agreement * 100))% agreement across \(result.classifier.positiveExamples.count) taps"
+            } else {
+                statusMessage = "Learned \(zone.displayName)"
+            }
+        } catch {
+            errorMessage = "Could not learn this tap. \(error.localizedDescription)"
+        }
+    }
+
     func deleteSelectedProfile() {
         guard let profile = selectedProfile else { return }
         do {
@@ -794,6 +829,7 @@ final class AppModel: ObservableObject {
         var decision = profile.classifier.predict(observation.feature)
         decision.processingLatencyMilliseconds = observation.processingLatencyMilliseconds
         present(decision)
+        lastLiveFeature = observation.feature
         if let zone = decision.zone {
             if section != .live {
                 statusMessage = "\(zone.displayName) detected • actions paused outside Desk"
@@ -868,6 +904,7 @@ final class AppModel: ObservableObject {
         gestureFlushTask?.cancel()
         gestureFlushTask = nil
         gestureResolver = TapGestureResolver(window: gestureResolver.window)
+        lastLiveFeature = nil
     }
 
     private func handleCalibration(_ observation: TapObservation, session: inout CalibrationSession) {
